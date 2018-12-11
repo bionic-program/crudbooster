@@ -4,6 +4,10 @@
     $parent_select = (count(explode(",", $form['parent_select'])) > 1) ? explode(",", $form['parent_select']) : $form['parent_select'];
     $parent = is_array($parent_select) ? $parent_select[0] : $parent_select;
     $add_field = is_array($parent_select) ? $parent_select[1] : '';
+
+    $preeval = $form['datatable_where'];
+    eval("\$preeval = \"$preeval\";");
+    $form['datatable_where'] = $preeval;
     ?>
     @push('bottom')
         <script type="text/javascript">
@@ -104,6 +108,10 @@
                 endif;
 
                 if (@$form['datatable']):
+                    if (@$form['php_code_before']) {
+                        eval($form['php_code_before']);
+                    }
+
                     $raw = explode(",", $form['datatable']);
                     $format = $form['datatable_format'];
                     $table1 = $raw[0];
@@ -122,6 +130,9 @@
                     }
 
                     if (@$form['datatable_where']) {
+                        $preeval = $form['datatable_where'];
+                        eval("\$preeval = \"$preeval\";");
+                        $form['datatable_where'] = $preeval;
                         $selects_data->whereraw($form['datatable_where']);
                     }
 
