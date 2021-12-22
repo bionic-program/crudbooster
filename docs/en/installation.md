@@ -12,8 +12,8 @@ CRUDBooster is CRUD Generator for laravel, with the most important features web 
   - SQLite
   - SQL Server
 - Composer
-- Laravel 5.3.x or higher
-- Php 5.6.x or higher and the extensions:
+- Laravel 6.* / 7.* / 8.*
+- Php 7.2 or higher and the extensions:
   - Mcrypt
   - OpenSSL
   - Mbstring
@@ -21,41 +21,24 @@ CRUDBooster is CRUD Generator for laravel, with the most important features web 
   - FileInfo
 
 ## Installation
-1. Open the terminal, navigate to your project directory.
+
+0. Please make sure you have install laravel project, please follow [https://laravel.com/docs/8.x/installation](https://laravel.com/docs/8.x/installation)
+
+1. Open the terminal, navigate to your laravel project directory.
 ```php
-$ composer require crocodicstudio/crudbooster
+$ composer require crocodicstudio/crudbooster=5.6.*
 ```
 
-2. Add the following class, to "providers" array in the file **config/app.php**
-```php
-crocodicstudio\crudbooster\CRUDBoosterServiceProvider::class,
-```
-
-3. Setting the database configuration, open .env file at project root directory
+2. Setting the database configuration, open .env file at project root directory
 ```
 DB_DATABASE=**your_db_name**
 DB_USERNAME=**your_db_user**
 DB_PASSWORD=**password**
 ```
 
-4. Run the following command at the terminal
+3. Run the following command at the terminal
 ```php
 $ php artisan crudbooster:install
-```
-
-## Update
-- Open the terminal, navigate to your project directory.
-```php
-$ composer require crocodicstudio/crudbooster
-```
-- Run the following command at the terminal
-```php
-$ php artisan crudbooster:update
-```
-
-## If you have an issue about broken file upload then you need to run:
-```php
-$ php artisan crudbooster:update
 ```
 
 ## Backend URL

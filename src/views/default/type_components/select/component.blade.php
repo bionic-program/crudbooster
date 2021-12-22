@@ -1,4 +1,4 @@
-<?php $default = ! empty($form['default']) ? $form['default'] : trans('crudbooster.text_prefix_option')." ".$form['label'];?>
+<?php $default = ! empty($form['default']) ? $form['default'] : cbLang('text_prefix_option')." ".$form['label'];?>
 @if($form['parent_select'])
     <?php
     $parent_select = (count(explode(",", $form['parent_select'])) > 1) ? explode(",", $form['parent_select']) : $form['parent_select'];
@@ -38,7 +38,7 @@
                     var value = "{{$value}}";
 
                     if (fk_value != '') {
-                        $current.html("<option value=''>{{trans('crudbooster.text_loading')}} {{$form['label']}}");
+                        $current.html("<option value=''>{{cbLang('text_loading')}} {{$form['label']}}");
                         $.get("{{CRUDBooster::mainpath('data-table')}}?table=" + table + "&label=" + label + "&fk_name=" + fk_name + "&fk_value=" + fk_value + "&datatable_where=" + encodeURI(datatableWhere), function (response) {
                             if (response) {
                                 $current.html("<option value=''>{{$default}}");
@@ -65,7 +65,7 @@
 <div class='form-group {{$header_group_class}} {{ ($errors->first($name))?"has-error":"" }}' id='form-group-{{$name}}' style="{{@$form['style']}}">
     <label class='control-label col-sm-2'>{{$form['label']}}
         @if($required)
-            <span class='text-danger' title='{!! trans('crudbooster.this_field_is_required') !!}'>*</span>
+            <span class='text-danger' title='{!! cbLang('this_field_is_required') !!}'>*</span>
         @endif
     </label>
 
@@ -114,6 +114,7 @@
 
                     $raw = explode(",", $form['datatable']);
                     $format = $form['datatable_format'];
+                    $datatable_order = explode(',', $form['datatable_order']);
                     $table1 = $raw[0];
                     $column1 = $raw[1];
 
@@ -156,7 +157,10 @@
                     if ($format) {
                         $format = str_replace('&#039;', "'", $format);
                         $selects_data->addselect(DB::raw("CONCAT($format) as label"));
-                        $selects_data = $selects_data->orderby(DB::raw("CONCAT($format)"), "asc")->get();
+                        $selects_data = $selects_data->orderby(
+                            empty($datatable_order[0]) ? DB::raw("CONCAT($format)") : $datatable_order[0],
+                            $datatable_order[1] ?? "asc"
+                        )->get();
                     } else {
                         $selects_data->addselect($orderby_table.'.'.$orderby_column.' as label');
                         $selects_data = $selects_data->orderby($orderby_table.'.'.$orderby_column, "asc")->get();

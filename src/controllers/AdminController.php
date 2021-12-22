@@ -22,7 +22,7 @@ class AdminController extends CBController
         if (! CRUDBooster::myId()) {
             Session::flush();
 
-            return redirect()->route('getLogin')->with('message', trans('crudbooster.alert_session_expired'));
+            return redirect()->route('getLogin')->with('message', cbLang('alert_session_expired'));
         }
 
         Session::put('admin_lock', 1);
@@ -33,7 +33,7 @@ class AdminController extends CBController
     public function postUnlockScreen()
     {
         $id = CRUDBooster::myId();
-        $password = Request::input('password');
+        $password = request('password');
         $users = DB::table(config('crudbooster.USER_TABLE'))->where('id', $id)->first();
 
         if (\Hash::check($password, $users->password)) {
@@ -41,7 +41,7 @@ class AdminController extends CBController
 
             return redirect(CRUDBooster::adminPath());
         } else {
-            echo "<script>alert('".trans('crudbooster.alert_password_wrong')."');history.go(-1);</script>";
+            echo "<script>alert('".cbLang('alert_password_wrong')."');history.go(-1);</script>";
         }
     }
 
@@ -88,16 +88,16 @@ class AdminController extends CBController
             Session::put('admin_privileges_name', $priv->name);
             Session::put('admin_lock', 0);
             Session::put('theme_color', $priv->theme_color);
-            Session::put("appname", CRUDBooster::getSetting('appname'));
+            Session::put("appname", get_setting('appname'));
 
-            CRUDBooster::insertLog(trans("crudbooster.log_login", ['email' => $users->email, 'ip' => Request::server('REMOTE_ADDR')]));
+            CRUDBooster::insertLog(cbLang("log_login", ['email' => $users->email, 'ip' => Request::server('REMOTE_ADDR')]));
 
             $cb_hook_session = new \App\Http\Controllers\CBHook;
             $cb_hook_session->afterLogin();
 
             return redirect(CRUDBooster::adminPath());
         } else {
-            return redirect()->route('getLogin')->with('message', trans('crudbooster.alert_password_wrong'));
+            return redirect()->route('getLogin')->with('message', cbLang('alert_password_wrong'));
         }
     }
 
@@ -132,19 +132,19 @@ class AdminController extends CBController
         $user->password = $rand_string;
         CRUDBooster::sendEmail(['to' => $user->email, 'data' => $user, 'template' => 'forgot_password_backend']);
 
-        CRUDBooster::insertLog(trans("crudbooster.log_forgot", ['email' => g('email'), 'ip' => Request::server('REMOTE_ADDR')]));
+        CRUDBooster::insertLog(cbLang("log_forgot", ['email' => g('email'), 'ip' => Request::server('REMOTE_ADDR')]));
 
-        return redirect()->route('getLogin')->with('message', trans("crudbooster.message_forgot_password"));
+        return redirect()->route('getLogin')->with('message', cbLang("message_forgot_password"));
     }
 
     public function getLogout()
     {
 
         $me = CRUDBooster::me();
-        CRUDBooster::insertLog(trans("crudbooster.log_logout", ['email' => $me->email]));
+        CRUDBooster::insertLog(cbLang("log_logout", ['email' => $me->email]));
 
         Session::flush();
 
-        return redirect()->route('getLogin')->with('message', trans("crudbooster.message_after_logout"));
+        return redirect()->route('getLogin')->with('message', cbLang("message_after_logout"));
     }
 }

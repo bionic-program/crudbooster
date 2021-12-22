@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class CBSeeder extends Seeder
 {
@@ -12,40 +14,171 @@ class CBSeeder extends Seeder
     public function run()
     {
         $this->command->info('Please wait updating the data...');
-
-        $this->call('Cms_usersSeeder');
-        $this->call('Cms_modulsSeeder');
-        $this->call('Cms_privilegesSeeder');
-        $this->call('Cms_privileges_rolesSeeder');
-        $this->call('Cms_settingsSeeder');
-        $this->call('CmsEmailTemplates');
-
-        $this->command->info('Updating the data completed !');
-    }
-}
-
-class CmsEmailTemplates extends Seeder
-{
-    public function run()
-    {
-        DB::table('cms_email_templates')->insert([
+        # User
+        if (DB::table('cms_users')->count() == 0) {
+            $password = Hash::make('123456');
+            $cms_users = DB::table('cms_users')->insert([
                 'created_at' => date('Y-m-d H:i:s'),
-                'name' => 'Email Template Forgot Password Backend',
-                'slug' => 'forgot_password_backend',
-                'content' => '<p>Hi,</p><p>Someone requested forgot password, here is your new password : </p><p>[password]</p><p><br></p><p>--</p><p>Regards,</p><p>Admin</p>',
-                'description' => '[password]',
-                'from_name' => 'System',
-                'from_email' => 'system@crudbooster.com',
-                'cc_email' => null,
+                'name' => 'Super Admin',
+                'email' => 'admin@crudbooster.com',
+                'password' => $password,
+                'id_cms_privileges' => 1,
+                'status' => 'Active',
             ]);
-    }
-}
+        }
+        $this->command->info("Create users completed");
+        # User End
 
-class Cms_settingsSeeder extends Seeder
-{
-    public function run()
-    {
+        # Email Templates
+        DB::table('cms_email_templates')->insert([
+            'created_at' => date('Y-m-d H:i:s'),
+            'name' => 'Email Template Forgot Password Backend',
+            'slug' => 'forgot_password_backend',
+            'content' => '<p>Hi,</p><p>Someone requested forgot password, here is your new password : </p><p>[password]</p><p><br></p><p>--</p><p>Regards,</p><p>Admin</p>',
+            'description' => '[password]',
+            'from_name' => 'System',
+            'from_email' => 'system@crudbooster.com',
+            'cc_email' => null,
+        ]);
+        $this->command->info("Create email templates completed");
 
+        # CB Modules
+        $data = [
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('Notifications'),
+                'icon' => 'fa fa-cog',
+                'path' => 'notifications',
+                'table_name' => 'cms_notifications',
+                'controller' => 'NotificationsController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('Privileges'),
+                'icon' => 'fa fa-cog',
+                'path' => 'privileges',
+                'table_name' => 'cms_privileges',
+                'controller' => 'PrivilegesController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('Privileges_Roles'),
+                'icon' => 'fa fa-cog',
+                'path' => 'privileges_roles',
+                'table_name' => 'cms_privileges_roles',
+                'controller' => 'PrivilegesRolesController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('Users_Management'),
+                'icon' => 'fa fa-users',
+                'path' => 'users',
+                'table_name' => 'cms_users',
+                'controller' => 'AdminCmsUsersController',
+                'is_protected' => 0,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('settings'),
+                'icon' => 'fa fa-cog',
+                'path' => 'settings',
+                'table_name' => 'cms_settings',
+                'controller' => 'SettingsController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('Module_Generator'),
+                'icon' => 'fa fa-database',
+                'path' => 'module_generator',
+                'table_name' => 'cms_moduls',
+                'controller' => 'ModulsController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('Menu_Management'),
+                'icon' => 'fa fa-bars',
+                'path' => 'menu_management',
+                'table_name' => 'cms_menus',
+                'controller' => 'MenusController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('Email_Templates'),
+                'icon' => 'fa fa-envelope-o',
+                'path' => 'email_templates',
+                'table_name' => 'cms_email_templates',
+                'controller' => 'EmailTemplatesController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('Statistic_Builder'),
+                'icon' => 'fa fa-dashboard',
+                'path' => 'statistic_builder',
+                'table_name' => 'cms_statistics',
+                'controller' => 'StatisticBuilderController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('API_Generator'),
+                'icon' => 'fa fa-cloud-download',
+                'path' => 'api_generator',
+                'table_name' => '',
+                'controller' => 'ApiCustomController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+            [
+
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => cbLang('Log_User_Access'),
+                'icon' => 'fa fa-flag-o',
+                'path' => 'logs',
+                'table_name' => 'cms_logs',
+                'controller' => 'LogsController',
+                'is_protected' => 1,
+                'is_active' => 1,
+            ],
+        ];
+
+        foreach ($data as $k => $d) {
+            if (DB::table('cms_moduls')->where('name', $d['name'])->count()) {
+                unset($data[$k]);
+            }
+        }
+
+        DB::table('cms_moduls')->insert($data);
+        $this->command->info("Create default cb modules completed");
+        # CB Modules End
+
+
+        # CB Setting
         $data = [
 
             //LOGIN REGISTER STYLE
@@ -55,7 +188,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'Login Background Color',
                 'content' => null,
                 'content_input_type' => 'text',
-                'group_setting' => trans('crudbooster.login_register_style'),
+                'group_setting' => cbLang('login_register_style'),
                 'dataenum' => null,
                 'helper' => 'Input hexacode',
             ],
@@ -65,7 +198,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'Login Font Color',
                 'content' => null,
                 'content_input_type' => 'text',
-                'group_setting' => trans('crudbooster.login_register_style'),
+                'group_setting' => cbLang('login_register_style'),
                 'dataenum' => null,
                 'helper' => 'Input hexacode',
             ],
@@ -75,7 +208,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'Login Background Image',
                 'content' => null,
                 'content_input_type' => 'upload_image',
-                'group_setting' => trans('crudbooster.login_register_style'),
+                'group_setting' => cbLang('login_register_style'),
                 'dataenum' => null,
                 'helper' => null,
             ],
@@ -87,7 +220,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'Email Sender',
                 'content' => 'support@crudbooster.com',
                 'content_input_type' => 'text',
-                'group_setting' => trans('crudbooster.email_setting'),
+                'group_setting' => cbLang('email_setting'),
                 'dataenum' => null,
                 'helper' => null,
             ],
@@ -97,7 +230,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'Mail Driver',
                 'content' => 'mail',
                 'content_input_type' => 'select',
-                'group_setting' => trans('crudbooster.email_setting'),
+                'group_setting' => cbLang('email_setting'),
                 'dataenum' => 'smtp,mail,sendmail',
                 'helper' => null,
             ],
@@ -107,7 +240,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'SMTP Host',
                 'content' => '',
                 'content_input_type' => 'text',
-                'group_setting' => trans('crudbooster.email_setting'),
+                'group_setting' => cbLang('email_setting'),
                 'dataenum' => null,
                 'helper' => null,
             ],
@@ -117,7 +250,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'SMTP Port',
                 'content' => '25',
                 'content_input_type' => 'text',
-                'group_setting' => trans('crudbooster.email_setting'),
+                'group_setting' => cbLang('email_setting'),
                 'dataenum' => null,
                 'helper' => 'default 25',
             ],
@@ -127,7 +260,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'SMTP Username',
                 'content' => '',
                 'content_input_type' => 'text',
-                'group_setting' => trans('crudbooster.email_setting'),
+                'group_setting' => cbLang('email_setting'),
                 'dataenum' => null,
                 'helper' => null,
             ],
@@ -137,7 +270,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'SMTP Password',
                 'content' => '',
                 'content_input_type' => 'text',
-                'group_setting' => trans('crudbooster.email_setting'),
+                'group_setting' => cbLang('email_setting'),
                 'dataenum' => null,
                 'helper' => null,
             ],
@@ -147,7 +280,7 @@ class Cms_settingsSeeder extends Seeder
                 'created_at' => date('Y-m-d H:i:s'),
                 'name' => 'appname',
                 'label' => 'Application Name',
-                'group_setting' => trans('crudbooster.application_setting'),
+                'group_setting' => cbLang('application_setting'),
                 'content' => 'CRUDBooster',
                 'content_input_type' => 'text',
                 'dataenum' => null,
@@ -157,7 +290,7 @@ class Cms_settingsSeeder extends Seeder
                 'created_at' => date('Y-m-d H:i:s'),
                 'name' => 'default_paper_size',
                 'label' => 'Default Paper Print Size',
-                'group_setting' => trans('crudbooster.application_setting'),
+                'group_setting' => cbLang('application_setting'),
                 'content' => 'Legal',
                 'content_input_type' => 'text',
                 'dataenum' => null,
@@ -169,7 +302,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'Logo',
                 'content' => '',
                 'content_input_type' => 'upload_image',
-                'group_setting' => trans('crudbooster.application_setting'),
+                'group_setting' => cbLang('application_setting'),
                 'dataenum' => null,
                 'helper' => null,
             ],
@@ -179,7 +312,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'Favicon',
                 'content' => '',
                 'content_input_type' => 'upload_image',
-                'group_setting' => trans('crudbooster.application_setting'),
+                'group_setting' => cbLang('application_setting'),
                 'dataenum' => null,
                 'helper' => null,
             ],
@@ -189,7 +322,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'API Debug Mode',
                 'content' => 'true',
                 'content_input_type' => 'select',
-                'group_setting' => trans('crudbooster.application_setting'),
+                'group_setting' => cbLang('application_setting'),
                 'dataenum' => 'true,false',
                 'helper' => null,
             ],
@@ -199,7 +332,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'Google API Key',
                 'content' => '',
                 'content_input_type' => 'text',
-                'group_setting' => trans('crudbooster.application_setting'),
+                'group_setting' => cbLang('application_setting'),
                 'dataenum' => null,
                 'helper' => null,
             ],
@@ -209,7 +342,7 @@ class Cms_settingsSeeder extends Seeder
                 'label' => 'Google FCM Key',
                 'content' => '',
                 'content_input_type' => 'text',
-                'group_setting' => trans('crudbooster.application_setting'),
+                'group_setting' => cbLang('application_setting'),
                 'dataenum' => null,
                 'helper' => null,
             ],
@@ -226,14 +359,18 @@ class Cms_settingsSeeder extends Seeder
             }
             DB::table('cms_settings')->insert($row);
         }
-    }
-}
+        $this->command->info("Create cb settings completed");
+        # CB Setting End
 
-class Cms_privileges_rolesSeeder extends Seeder
-{
-    public function run()
-    {
-
+        # CB Privilege
+        if (DB::table('cms_privileges')->where('name', 'Super Administrator')->count() == 0) {
+            DB::table('cms_privileges')->insert([
+                'created_at' => date('Y-m-d H:i:s'),
+                'name' => 'Super Administrator',
+                'is_superadmin' => 1,
+                'theme_color' => 'skin-red',
+            ]);
+        }
         if (DB::table('cms_privileges_roles')->count() == 0) {
             $modules = DB::table('cms_moduls')->get();
             $i = 1;
@@ -274,185 +411,9 @@ class Cms_privileges_rolesSeeder extends Seeder
                 $i++;
             }
         }
+        $this->command->info("Create roles completed");
+        # CB Privilege End
+
+        $this->command->info('All cb seeders completed !');
     }
 }
-
-class Cms_privilegesSeeder extends Seeder
-{
-    public function run()
-    {
-
-        if (DB::table('cms_privileges')->where('name', 'Super Administrator')->count() == 0) {
-            DB::table('cms_privileges')->insert([
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => 'Super Administrator',
-                'is_superadmin' => 1,
-                'theme_color' => 'skin-red',
-            ]);
-        }
-    }
-}
-
-class Cms_modulsSeeder extends Seeder
-{
-    public function run()
-    {
-
-        /* 
-            1 = Public
-            2 = Setting        
-        */
-
-        $data = [
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.Notifications'),
-                'icon' => 'fa fa-cog',
-                'path' => 'notifications',
-                'table_name' => 'cms_notifications',
-                'controller' => 'NotificationsController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.Privileges'),
-                'icon' => 'fa fa-cog',
-                'path' => 'privileges',
-                'table_name' => 'cms_privileges',
-                'controller' => 'PrivilegesController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.Privileges_Roles'),
-                'icon' => 'fa fa-cog',
-                'path' => 'privileges_roles',
-                'table_name' => 'cms_privileges_roles',
-                'controller' => 'PrivilegesRolesController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.Users_Management'),
-                'icon' => 'fa fa-users',
-                'path' => 'users',
-                'table_name' => 'cms_users',
-                'controller' => 'AdminCmsUsersController',
-                'is_protected' => 0,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.settings'),
-                'icon' => 'fa fa-cog',
-                'path' => 'settings',
-                'table_name' => 'cms_settings',
-                'controller' => 'SettingsController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.Module_Generator'),
-                'icon' => 'fa fa-database',
-                'path' => 'module_generator',
-                'table_name' => 'cms_moduls',
-                'controller' => 'ModulsController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.Menu_Management'),
-                'icon' => 'fa fa-bars',
-                'path' => 'menu_management',
-                'table_name' => 'cms_menus',
-                'controller' => 'MenusController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.Email_Templates'),
-                'icon' => 'fa fa-envelope-o',
-                'path' => 'email_templates',
-                'table_name' => 'cms_email_templates',
-                'controller' => 'EmailTemplatesController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.Statistic_Builder'),
-                'icon' => 'fa fa-dashboard',
-                'path' => 'statistic_builder',
-                'table_name' => 'cms_statistics',
-                'controller' => 'StatisticBuilderController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.API_Generator'),
-                'icon' => 'fa fa-cloud-download',
-                'path' => 'api_generator',
-                'table_name' => '',
-                'controller' => 'ApiCustomController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-            [
-
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => trans('crudbooster.Log_User_Access'),
-                'icon' => 'fa fa-flag-o',
-                'path' => 'logs',
-                'table_name' => 'cms_logs',
-                'controller' => 'LogsController',
-                'is_protected' => 1,
-                'is_active' => 1,
-            ],
-        ];
-
-        foreach ($data as $k => $d) {
-            if (DB::table('cms_moduls')->where('name', $d['name'])->count()) {
-                unset($data[$k]);
-            }
-        }
-
-        DB::table('cms_moduls')->insert($data);
-    }
-}
-
-class Cms_usersSeeder extends Seeder
-{
-    public function run()
-    {
-
-        if (DB::table('cms_users')->count() == 0) {
-            $password = \Hash::make('123456');
-            $cms_users = DB::table('cms_users')->insert([
-                'created_at' => date('Y-m-d H:i:s'),
-                'name' => 'Super Admin',
-                'email' => 'admin@crudbooster.com',
-                'password' => $password,
-                'id_cms_privileges' => 1,
-                'status' => 'Active',
-            ]);
-        }
-    }
-}
-

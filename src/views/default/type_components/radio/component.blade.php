@@ -1,13 +1,13 @@
 <div class='form-group {{$header_group_class}} {{ ($errors->first($name))?"has-error":"" }}' id='form-group-{{$name}}' style="{{@$form['style']}}">
     <label class='control-label col-sm-2'>{{$form['label']}}
         @if($required)
-            <span class='text-danger' title='{!! trans('crudbooster.this_field_is_required') !!}'>*</span>
+            <span class='text-danger' title='{!! cbLang('this_field_is_required') !!}'>*</span>
         @endif
     </label>
     <div class="{{$col_width?:'col-sm-10'}}">
 
         @if(!$form['dataenum'] && !$form['datatable'] && !$form['dataquery'])
-            <em>{{trans('crudbooster.there_is_no_option')}}</em>
+            <em>{{cbLang('there_is_no_option')}}</em>
         @endif
 
         @if($form['dataenum']!='')
@@ -25,7 +25,7 @@
                 } else {
                     $val = $label = $d;
                 }
-                $checked = ($value && in_array($val, $value)) ? "checked" : "";
+				$checked = ( ($value && in_array($val, $value)) || (CRUDBooster::isCreate() && ($k==0 && $form['validation'])) ) ? "checked" : "";
                 ?>
                 <div class=" {{$disabled}}">
                     <label class='radio-inline'>

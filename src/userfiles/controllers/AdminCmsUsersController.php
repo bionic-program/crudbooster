@@ -4,8 +4,9 @@ use Session;
 use Request;
 use DB;
 use CRUDbooster;
+use crocodicstudio\crudbooster\controllers\CBController;
 
-class AdminCmsUsersController extends \crocodicstudio\crudbooster\controllers\CBController {
+class AdminCmsUsersController extends CBController {
 
 
 	public function cbInit() {
@@ -32,7 +33,9 @@ class AdminCmsUsersController extends \crocodicstudio\crudbooster\controllers\CB
 		$this->form[] = array("label"=>"Email","name"=>"email",'required'=>true,'type'=>'email','validation'=>'required|email|unique:cms_users,email,'.CRUDBooster::getCurrentId());		
 		$this->form[] = array("label"=>"Photo","name"=>"photo","type"=>"upload","help"=>"Recommended resolution is 200x200px",'required'=>true,'validation'=>'required|image|max:1000','resize_width'=>90,'resize_height'=>90);											
 		$this->form[] = array("label"=>"Privilege","name"=>"id_cms_privileges","type"=>"select","datatable"=>"cms_privileges,name",'required'=>true);						
+		// $this->form[] = array("label"=>"Password","name"=>"password","type"=>"password","help"=>"Please leave empty if not change");
 		$this->form[] = array("label"=>"Password","name"=>"password","type"=>"password","help"=>"Please leave empty if not change");
+		$this->form[] = array("label"=>"Password Confirmation","name"=>"password_confirmation","type"=>"password","help"=>"Please leave empty if not change");
 		# END FORM DO NOT REMOVE THIS LINE
 				
 	}
@@ -46,8 +49,15 @@ class AdminCmsUsersController extends \crocodicstudio\crudbooster\controllers\CB
 		$this->button_delete  = FALSE;	
 		$this->hide_form 	  = ['id_cms_privileges'];
 
-		$data['page_title'] = trans("crudbooster.label_button_profile");
-		$data['row']        = CRUDBooster::first('cms_users',CRUDBooster::myId());		
-		$this->cbView('crudbooster::default.form',$data);				
+		$data['page_title'] = cbLang("label_button_profile");
+		$data['row']        = CRUDBooster::first('cms_users',CRUDBooster::myId());
+
+        return $this->view('crudbooster::default.form',$data);
+	}
+	public function hook_before_edit(&$postdata,$id) { 
+		unset($postdata['password_confirmation']);
+	}
+	public function hook_before_add(&$postdata) {      
+	    unset($postdata['password_confirmation']);
 	}
 }

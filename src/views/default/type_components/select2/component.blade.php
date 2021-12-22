@@ -35,7 +35,7 @@
                         $('#{{$name}}').select2({
                             placeholder: {
                                 id: '-1',
-                                text: '{{trans('crudbooster.text_prefix_option')}} {{$form['label']}}'
+                                text: '{{cbLang('text_prefix_option')}} {{$form['label']}}'
                             },
                             allowClear: true,
                             ajax: {
@@ -120,7 +120,7 @@
 <div class='form-group {{$header_group_class}} {{ ($errors->first($name))?"has-error":"" }}' id='form-group-{{$name}}' style="{{@$form['style']}}">
     <label class='control-label col-sm-2'>{{$form['label']}}
         @if($required)
-            <span class='text-danger' title='{!! trans('crudbooster.this_field_is_required') !!}'>*</span>
+            <span class='text-danger' title='{!! cbLang('this_field_is_required') !!}'>*</span>
         @endif
     </label>
 
@@ -128,7 +128,7 @@
         <select style='width:100%' class='form-control' id="{{$name}}"
                 {{$required}} {{$readonly}} {!!$placeholder!!} {{$disabled}} name="{{$name}}{{($form['relationship_table'])?'[]':''}}" {{ ($form['relationship_table'])?'multiple="multiple"':'' }} >
             @if($form['dataenum'])
-                <option value=''>{{trans('crudbooster.text_prefix_option')}} {{$form['label']}}</option>
+                <option value=''>{{cbLang('text_prefix_option')}} {{$form['label']}}</option>
                 <?php
                 $dataenum = $form['dataenum'];
                 $dataenum = (is_array($dataenum)) ? $dataenum : explode(";", $dataenum);
@@ -164,13 +164,18 @@
                     }
                     $result = $result->orderby($select_title, 'asc')->get();
 
-
-                    $foreignKey = CRUDBooster::getForeignKey($table, $form['relationship_table']);
-                    $foreignKey2 = CRUDBooster::getForeignKey($select_table, $form['relationship_table']);
-
-                    $value = DB::table($form['relationship_table'])->where($foreignKey, $id);
-                    $value = $value->pluck($foreignKey2)->toArray();
-
+                    if($form['datatable_orig'] != ''){
+                        $params = explode("|", $form['datatable_orig']);
+                        if(!isset($params[2])) $params[2] = "id";
+                        $value = DB::table($params[0])->where($params[2], $id)->first()->{$params[1]};
+                        $value = explode(",", $value);
+                    } else {
+                        $foreignKey = CRUDBooster::getForeignKey($table, $form['relationship_table']);
+                        $foreignKey2 = CRUDBooster::getForeignKey($select_table, $form['relationship_table']);
+                        $value = DB::table($form['relationship_table'])->where($foreignKey, $id);
+                        $value = $value->pluck($foreignKey2)->toArray();
+                    }
+                    
                     foreach ($result as $r) {
                         $option_label = $r->{$select_title};
                         $option_value = $r->id;
@@ -180,7 +185,7 @@
                     ?>
                 @else
                     @if($form['datatable_ajax'] == false)
-                        <option value=''>{{trans('crudbooster.text_prefix_option')}} {{$form['label']}}</option>
+                        <option value=''>{{cbLang('text_prefix_option')}} {{$form['label']}}</option>
                         <?php
                         $select_table = explode(',', $form['datatable'])[0];
                         $select_title = explode(',', $form['datatable'])[1];
