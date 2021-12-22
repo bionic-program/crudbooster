@@ -62,20 +62,22 @@
     @endpush
 
 @endif
-<div class='form-group {{$header_group_class}} {{ ($errors->first($name))?"has-error":"" }}' id='form-group-{{$name}}' style="{{@$form['style']}}">
-    <label class='control-label col-sm-2'>{{$form['label']}}
+<div class='form-group {{$header_group_class}} {{ ($errors->first($name))?"has-error":"" }} {{$col_group_width?:"col-sm-12"}}' id='form-group-{{$name}}' style="{{@$form['style']}}">
+    <label class="control-label {{$col_label_width?:'col-sm-2'}}" style="{{@$form['label_style']}}">{{$form['label']}}
         @if($required)
             <span class='text-danger' title='{!! cbLang('this_field_is_required') !!}'>*</span>
         @endif
     </label>
 
-    <div class="{{$col_width?:'col-sm-10'}}">
+    <div class="no-padding {{$col_width?:'col-sm-10'}}" style="{{@$form['control_style']}}">
         <select class='form-control' id="{{$name}}" data-value='{{$value}}' {{$required}} {!!$placeholder!!} {{$readonly}} {{$disabled}} name="{{$name}}">
             <option value=''>{{$default}}</option>
             <?php
             if (! $form['parent_select']) {
                 if (@$form['dataquery']):
-
+                    $preeval = $form['dataquery'];
+                    eval("\$preeval = \"$preeval\";");
+                    $form['dataquery'] = $preeval;
                     $query = DB::select(DB::raw($form['dataquery']));
                     if ($query) {
                         foreach ($query as $q) {

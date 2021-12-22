@@ -155,6 +155,12 @@ class CRUDBooster
         return $query->content;
     }
 
+    public static function setSetting($name,$content)
+    {
+        DB::table('cms_settings')->where('name', $name)->update(['content'=>$content]);
+        Cache::forever('setting_'.$name, $content);
+    }
+
     public static function insert($table, $data = [])
     {
         if (! $data['created_at']) {
@@ -274,6 +280,15 @@ class CRUDBooster
         }
     }
 
+    public static function redirectBackWithInput($message, $type = 'warning')
+    {
+
+        $resp = redirect()->back()->with(['message' => $message, 'message_type' => $type])->withInput();
+        Session::driver()->save();
+        $resp->send();
+        exit;
+    }
+
     public static function redirect($to, $message, $type = 'warning')
     {
 
@@ -358,6 +373,20 @@ class CRUDBooster
         }
     }
 
+    public static function isStatus()
+    {
+        if (self::isSuperadmin()) {
+            return true;
+        }
+
+        $session = Session::get('admin_privileges_roles');
+        foreach ($session as $v) {
+            if ($v->path == self::getModulePath()) {
+                return (bool) $v->is_status;
+            }
+        }
+    }
+
     public static function isCRUD()
     {
         if (self::isSuperadmin()) {
@@ -379,11 +408,9 @@ class CRUDBooster
     public static function getCurrentModule()
     {
         $modulepath = self::getModulePath();
-
         if (Cache::has('moduls_'.$modulepath)) {
             return Cache::get('moduls_'.$modulepath);
         } else {
-
             $module = DB::table('cms_moduls')->where('path', self::getModulePath())->first();
 
             //supply modulpath instead of $module incase where user decides to create form and custom url that does not exist in cms_moduls table.
@@ -1788,7 +1815,7 @@ class CRUDBooster
 	    | ---------------------------------------------------------------------- 
 	    |
 	    */    
-	    public function hook_row_index($column_index,&$column_value) {	        
+	    public function hook_row_index($column_index,&$column_value,$row) {	        
 	    	//Your code here
 	    }
 
@@ -1815,6 +1842,18 @@ class CRUDBooster
 	        //Your code here
 
 	    }
+
+        /* 
+        | ---------------------------------------------------------------------- 
+        | Hook for execute command before edit view called
+        | ----------------------------------------------------------------------     
+        | @model       = current model data 
+        | 
+        */
+        public function hook_before_get(&$model) {
+            //Your code here 
+
+        }
 
 	    /* 
 	    | ---------------------------------------------------------------------- 
@@ -1903,8 +1942,9 @@ class CRUDBooster
             $controller_class = new \ReflectionClass($namespace.'\\'.$controller);
             $controller_methods = $controller_class->getMethods(\ReflectionMethod::IS_PUBLIC);
             $wildcards = '/{one?}/{two?}/{three?}/{four?}/{five?}';
-            foreach ($controller_methods as $method) {
 
+            foreach ($controller_methods as $method) {
+                
                 if ($method->class != 'Illuminate\Routing\Controller' && $method->name != 'getIndex') {
                     if (substr($method->name, 0, 3) == 'get') {
                         $method_name = substr($method->name, 3);
@@ -1912,6 +1952,7 @@ class CRUDBooster
                         $slug = strtolower(implode('-', $slug));
                         $slug = ($slug == 'index') ? '' : $slug;
                         Route::get($prefix.$slug.$wildcards, ['uses' => $controller.'@'.$method->name, 'as' => $controller.'Get'.$method_name]);
+
                     } elseif (substr($method->name, 0, 4) == 'post') {
                         $method_name = substr($method->name, 4);
                         $slug = array_filter(preg_split('/(?=[A-Z])/', $method_name));
@@ -1923,7 +1964,8 @@ class CRUDBooster
                 }
             }
         } catch (\Exception $e) {
-
+            echo $e->getMessage();
+            exit;
         }
     }
 }

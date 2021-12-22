@@ -61,14 +61,15 @@ $asset_already[] = $type;
             $join_title = $join_arr[1];
             $join_table_pk = CB::pk($join_table);
             $join_fk = CB::getForeignKey($table, $join_table);
-            $join_query_[$join_table] = DB::table($join_table)->select($join_title)->where($join_table_pk, $row->{$join_fk})->first();
-            $value = @$join_query_[$join_table]->{$join_title};
+            $join_query_{$join_table} = DB::table($join_table)->select($join_title)->where($join_table_pk, $row->{$join_fk})->first();
+            $value = @$join_query_{$join_table}->{$join_title};
         }
 
         $type = @$form['type'] ?: 'text';
         $required = (@$form['required']) ? "required" : "";
         $readonly = (@$form['readonly']) ? "readonly" : "";
         $disabled = (@$form['disabled']) ? "disabled" : "";
+        $style   = (@$form['style']) ? 'style='.$form['style'] : "";
         $jquery = @$form['jquery'];
         $placeholder = (@$form['placeholder']) ? "placeholder='".$form['placeholder']."'" : "";
         $file_location = base_path('vendor/crocodicstudio/crudbooster/src/views/default/type_components/'.$type.'/component_detail.blade.php');

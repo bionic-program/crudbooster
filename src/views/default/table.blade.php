@@ -185,7 +185,7 @@ $from = $result->count() ? ($result->perPage() * $result->currentPage() - $resul
 $to = $result->perPage() * $result->currentPage() - $result->perPage() + $result->count();
 $total = $result->total();
 ?>
-<div class="col-md-4"><span class="pull-right">{{ cbLang("filter_rows_total") }}
+<div class="col-md-4" style="margin:30px 0;><span class="pull-right">{{ cbLang("filter_rows_total") }}
         : {{ $from }} {{ cbLang("filter_rows_to") }} {{ $to }} {{ cbLang("filter_rows_of") }} {{ $total }}</span></div>
 
 @if($columns)
@@ -197,6 +197,16 @@ $total = $result->total();
                 })
 
                 $('.btn-export-data').click(function () {
+                    var selected = "";
+                    $("input[name='checkbox[]']").each(function(i,input){
+                        if($(input).is(":checked")){
+                            if(selected != ""){
+                                selected += ",";
+                            }
+                            selected += $(input).val();
+                        }
+                    });
+                    $("input[name='selected_data']").val(selected);
                     $('#export-data').modal('show');
                 })
 
@@ -327,42 +337,58 @@ $total = $result->total();
                                                 class="filter-combo form-control">
                                             <option value=''>** {{cbLang("filter_select_operator_type")}}</option>
                                             @if(in_array($col['type_data'],['string','varchar','text','char']))
-                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'like')?"selected":"" }} value='like'>{{cbLang("filter_like")}}</option> @endif
+                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'like' || @$col["field_compare"] == 'like')?"selected":"" }} value='like'>{{cbLang("filter_like")}}</option> @endif
                                             @if(in_array($col['type_data'],['string','varchar','text','char']))
-                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'not like')?"selected":"" }} value='not like'>{{cbLang("filter_not_like")}}</option>@endif
+                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'not like' || @$col["field_compare"] == 'not like')?"selected":"" }} value='not like'>{{cbLang("filter_not_like")}}</option>@endif
 
                                             <option typeallow='all'
-                                                    {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '=')?"selected":"" }} value='='>{{cbLang("filter_equal_to")}}</option>
+                                                    {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '=' || @$col["field_compare"] == '=')?"selected":"" }} value='='>{{cbLang("filter_equal_to")}}</option>
                                             @if(in_array($col['type_data'],['int','integer','smallint','tinyint','mediumint','bigint','double','float','decimal','time']))
-                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '>=')?"selected":"" }} value='>='>{{cbLang("filter_greater_than_or_equal")}}</option>@endif
+                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '>=' || @$col["field_compare"] == '>=')?"selected":"" }} value='>='>{{cbLang("filter_greater_than_or_equal")}}</option>@endif
                                             @if(in_array($col['type_data'],['int','integer','smallint','tinyint','mediumint','bigint','double','float','decimal','time']))
-                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '<=')?"selected":"" }} value='<='>{{cbLang("filter_less_than_or_equal")}}</option>@endif
+                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '<=' || @$col["field_compare"] == '<=')?"selected":"" }} value='<='>{{cbLang("filter_less_than_or_equal")}}</option>@endif
                                             @if(in_array($col['type_data'],['int','integer','smallint','tinyint','mediumint','bigint','double','float','decimal','time']))
-                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '<')?"selected":"" }} value='<'>{{cbLang("filter_less_than")}}</option>@endif
+                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '<' || @$col["field_compare"] == '>')?"selected":"" }} value='<'>{{cbLang("filter_less_than")}}</option>@endif
                                             @if(in_array($col['type_data'],['int','integer','smallint','tinyint','mediumint','bigint','double','float','decimal','time']))
-                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '>')?"selected":"" }} value='>'>{{cbLang("filter_greater_than")}}</option>@endif
+                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '>' || @$col["field_compare"] == '>')?"selected":"" }} value='>'>{{cbLang("filter_greater_than")}}</option>@endif
                                             <option typeallow='all'
-                                                    {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '!=')?"selected":"" }} value='!='>{{cbLang("filter_not_equal_to")}}</option>
+                                                    {{ (CRUDBooster::getTypeFilter($col["field_with"]) == '!=' || @$col["field_compare"] == '!=')?"selected":"" }} value='!='>{{cbLang("filter_not_equal_to")}}</option>
                                             <option typeallow='all'
-                                                    {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'in')?"selected":"" }} value='in'>{{cbLang("filter_in")}}</option>
+                                                    {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'in' || @$col["field_compare"] == 'in')?"selected":"" }} value='in'>{{cbLang("filter_in")}}</option>
                                             <option typeallow='all'
-                                                    {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'not in')?"selected":"" }} value='not in'>{{cbLang("filter_not_in")}}</option>
+                                                    {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'not in' || @$col["field_compare"] == 'not in')?"selected":"" }} value='not in'>{{cbLang("filter_not_in")}}</option>
                                             @if(in_array($col['type_data'],['date','time','datetime','int','integer','smallint','tinyint','mediumint','bigint','double','float','decimal','timestamp']))
-                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'between')?"selected":"" }} value='between'>{{cbLang("filter_between")}}</option>@endif
+                                                <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'between' || @$col["field_compare"] == 'between')?"selected":"" }} value='between'>{{cbLang("filter_between")}}</option>@endif
                                             <option {{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'empty')?"selected":"" }} value='empty'>{{cbLang("filter_empty_or_null")}}</option>
                                         </select>
                                     </div><!--END COL_SM_4-->
 
 
-                                    <div class='col-sm-5'>
-                                        <input type='text' class='filter-value form-control'
+                                    <div class='col-sm-4'>
+                                        @if(isset($col['field_options']))
+                                            <?php
+                                                $options = $col['field_options'];
+                                            ?>
+                                                <select class='filter-value form-control' style="{{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'between')?"display:none":"display:block"}}"
+                                                {{@$col["field_compare"] != "" ? "" : "disabled"}} name='filter_column[{{$col["field_with"]}}][value]'>
+                                                    <option value="">
+                                                    </option>
+                                                    @foreach($options as $key => $value)
+                                                    <option {{ ((!is_array(CRUDBooster::getValueFilter($col["field_with"])))?CRUDBooster::getValueFilter($col["field_with"]):"") == $key ? "selected" : "" }} value="{{$key}}">
+                                                        {{$value}}
+                                                    </option>
+                                                    @endforeach
+                                                </select>
+                                        @else
+                                                <input type='text' class='filter-value form-control'
                                                style="{{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'between')?"display:none":"display:block"}}"
                                                disabled name='filter_column[{{$col["field_with"]}}][value]'
                                                value='{{ (!is_array(CRUDBooster::getValueFilter($col["field_with"])))?CRUDBooster::getValueFilter($col["field_with"]):"" }}'>
+                                        @endif
 
                                         <div class='row between-group'
                                              style="{{ (CRUDBooster::getTypeFilter($col["field_with"]) == 'between')?"display:block":"display:none" }}">
-                                            <div class='col-sm-6'>
+                                            <div class='col-sm-6' style="padding-right: 0px">
                                                 <div class='input-group {{ ($col["type_data"] == "time")?"bootstrap-timepicker":"" }}'>
                                                     <span class="input-group-addon">{{cbLang("filter_from")}}:</span>
                                                     <input
@@ -378,7 +404,7 @@ $total = $result->total();
                                                             ?>'>
                                                 </div>
                                             </div>
-                                            <div class='col-sm-6'>
+                                            <div class='col-sm-6' style="padding-left: 0px">
                                                 <div class='input-group {{ ($col["type_data"] == "time")?"bootstrap-timepicker":"" }}'>
                                                     <span class="input-group-addon">{{cbLang("filter_to")}}:</span>
                                                     <input
@@ -450,7 +476,9 @@ $total = $result->total();
                         toggle_advanced_report_boolean = 1;
                     }
 
-                })
+                });
+
+                $(".filter-combo").trigger("change");
             })
         </script>
 
@@ -483,19 +511,28 @@ $total = $result->total();
                             </div>
 
                             <div class='form-group'>
-                                <label>{{cbLang("export_dialog_columns")}}</label><br/>
-                                @foreach($columns as $col)
-                                    <div class='checkbox inline'><label><input type='checkbox' checked name='columns[]'
-                                                                               value='{{$col["name"]}}'>{{$col["label"]}}</label></div>
+                                <label>{{cbLang("export_dialog_columns")}}</label>
+                                @foreach($columns_export as $col)
+                                    <div class='checkbox inline' style="padding-right: 10px;">
+                                        <label>
+                                            <input type='checkbox' {!! isset($col['selected']) && !$col['selected'] ? '' : 'checked' !!} name='columns[]' value='{{$col["label"]}}'>{{$col["label"]}}
+                                        </label>
+                                    </div>
                                 @endforeach
                             </div>
 
                             <div class="form-group">
                                 <label>{{cbLang("export_dialog_format_export")}}</label>
                                 <select name='fileformat' class='form-control'>
+                                    @if(count($export_format) == 0 || in_array('pdf',$export_format))
                                     <option value='pdf'>PDF</option>
+                                    @endif
+                                    @if(count($export_format) == 0 || in_array('xls',$export_format))
                                     <option value='xls'>Microsoft Excel (xls)</option>
+                                    @endif
+                                    @if(count($export_format) == 0 || in_array('csv',$export_format))
                                     <option value='csv'>CSV</option>
+                                    @endif
                                 </select>
                             </div>
 

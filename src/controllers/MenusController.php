@@ -163,7 +163,8 @@ class MenusController extends CBController
             "name" => "name",
             "type" => "text",
             "required" => true,
-            "validation" => "required|min:3|max:255"
+            "validation" => "required|min:3|max:255|string",
+            "placeholder" => "You can only enter alphanumeric character and spaces only",
         ];
         $this->form[] = [
             "label" => "Type",

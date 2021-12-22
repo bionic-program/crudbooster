@@ -15,10 +15,10 @@
 
         <div class="panel panel-default">
             <div class="panel-heading">
-                <strong><i class='{{CRUDBooster::getCurrentModule()->icon}}'></i> {!! $page_title !!}</strong>
+                <strong><i class='{{CRUDBooster::getCurrentModule()->icon}}'></i> {!! $page_title or "Page Title" !!}</strong>
             </div>
 
-            <div class="panel-body" style="padding:20px 0px 0px 0px">
+            <div class="panel-body" style="padding:20px 0px 0px 0px;background-color:#F9F9F9;">
                 <?php
                 $action = (@$row) ? CRUDBooster::mainpath("edit-save/$row->id") : CRUDBooster::mainpath("add-save");
                 $return_url = ($return_url) ?: g('return_url');

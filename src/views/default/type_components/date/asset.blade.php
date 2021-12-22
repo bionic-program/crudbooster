@@ -7,12 +7,16 @@
     <script type="text/javascript">
         var lang = '{{App::getLocale()}}';
         $(function () {
-            $('.input_date').datepicker({
-                format: 'yyyy-mm-dd',
-                @if (in_array(App::getLocale(), ['ar', 'fa']))
-                rtl: true,
-                @endif
-                language: lang
+            $('.input_date').each(function( index ) {
+                $(this).datepicker({
+                    todayBtn: "linked",
+                    clearBtn: true,
+                    format: $("#format_"+$(this).attr("id")).val(),
+                    @if (in_array(App::getLocale(), ['ar', 'fa']))
+                    rtl: true,
+                    @endif
+                    language: lang
+                });
             });
 
             $('.open-datetimepicker').click(function () {

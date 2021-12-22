@@ -58,8 +58,8 @@ if ($join && @$row) {
     array_walk($join_arr, 'trim');
     $join_table = $join_arr[0];
     $join_title = $join_arr[1];
-    $join_query_[$join_table] = DB::table($join_table)->select($join_title)->where("id", $row->{'id_'.$join_table})->first();
-    $value = @$join_query_[$join_table]->{$join_title};
+    $join_query_{$join_table} = DB::table($join_table)->select($join_title)->where("id", $row->{'id_'.$join_table})->first();
+    $value = @$join_query_{$join_table}->{$join_title};
 }
 $form['type'] = ($form['type']) ?: 'text';
 $type = @$form['type'];
@@ -67,8 +67,11 @@ $required = (@$form['required']) ? "required" : "";
 $required = (@strpos($form['validation'], 'required') !== FALSE) ? "required" : $required;
 $readonly = (@$form['readonly']) ? "readonly" : "";
 $disabled = (@$form['disabled']) ? "disabled" : "";
+$style   = (@$form['style']) ? 'style='.$form['style'] : "";
 $placeholder = (@$form['placeholder']) ? "placeholder='".$form['placeholder']."'" : "";
 $col_width = @$form['width'] ?: "col-sm-9";
+$col_label_width = @$form['label_width'] ?: "col-sm-2";
+$col_group_width = @$form['group_width'] ?: "";
 
 if ($parent_field == $name) {
     $type = 'hidden';

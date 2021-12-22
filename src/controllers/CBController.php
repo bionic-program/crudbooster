@@ -39,6 +39,8 @@ class CBController extends Controller
 
     public $form = [];
 
+    public $col_export = []; //dvionst
+
     public $data = [];
 
     public $addaction = [];
@@ -62,6 +64,8 @@ class CBController extends Controller
     public $button_filter = true;
 
     public $button_export = true;
+
+    public $export_format = [];
 
     public $button_import = true;
 
@@ -125,14 +129,26 @@ class CBController extends Controller
 
     public $sidebar_mode = 'normal';
 
+    public $edit_id;
+
+    public $thousands_sep = ',';
+
+    public $export_font_family = 'Arial';
+
+    public $export_font_size = '7pt';
+
     public function cbLoader()
     {
+        $this->locale_info = localeconv();
         $this->cbInit();
 
         $this->checkHideForm();
 
-        $this->primary_key = CB::pk($this->table);
+        if ('' == $this->primary_key) { //dvionst
+            $this->primary_key = CB::pk($this->table);
+        }
         $this->columns_table = $this->col;
+        $this->columns_export = $this->col_export; //dvionst
         $this->data_inputan = $this->form;
         $this->data['pk'] = $this->primary_key;
         $this->data['forms'] = $this->data_inputan;
@@ -207,7 +223,7 @@ class CBController extends Controller
         }
     }
 
-    public function getIndex()
+    public function fetchIndex($is_export = false, $specific_keys = [])
     {
         $this->cbLoader();
 
@@ -252,23 +268,24 @@ class CBController extends Controller
             $table_parent = CRUDBooster::parseSqlTable($table_parent)['table'];
             $result->where($table_parent.'.'.request('foreign_key'), request('parent_id'));
         }
+    
+    	//dvionst cari data hanya yg spesifik
+        if (count($specific_keys) > 0) {
+            $result->whereIn($data['table'].'.'.$data['table_pk'], $specific_keys);
+        }
 
         $this->hook_query_index($result);
-
-        if (in_array('deleted_at', $table_columns)) {
-            $result->where($this->table.'.deleted_at', null);
-        }
 
         $alias = [];
         $join_alias_count = 0;
         $join_table_temp = [];
         $table = $this->table;
-        $columns_table = $this->columns_table;
+        $columns_table = $is_export ? $this->columns_export : $this->columns_table;
         foreach ($columns_table as $index => $coltab) {
-
             $join = @$coltab['join'];
             $join_where = @$coltab['join_where'];
             $join_id = @$coltab['join_id'];
+            $join_id_2 = @$coltab['join_id_2'];
             $field = @$coltab['name'];
             $join_table_temp[] = $table;
 
@@ -335,7 +352,7 @@ class CBController extends Controller
                 $columns_table[$index]['field_raw'] = $join_column;
 
                 @$join_table1 = $join_exp[2];
-                @$joinTable1PK = CB::pk($join_table1);
+                @$joinTable1PK = $join_id_2 ? $join_id_2 : CB::pk($join_table1);
                 @$join_column1 = $join_exp[3];
                 @$join_alias1 = $join_table1;
 
@@ -347,9 +364,14 @@ class CBController extends Controller
                     }
 
                     $join_table_temp[] = $join_table1;
-
-                    $result->leftjoin($join_table1.' as '.$join_alias1, $join_alias1.'.'.$joinTable1PK, '=', $join_alias.'.'.$join_column);
-                    $result->addselect($join_alias1.'.'.$join_column1.' as '.$join_column1.'_'.$join_alias1);
+                    $counter = explode('.', $join_table1);
+                    if (2 === count($counter)) {
+                        $result->leftjoin($counter[0].' as '.$join_alias1, $join_alias1, '=', $join_alias.'.'.$join_column);
+                        $result->addselect($counter[0].'.'.$join_column1.' as '.$join_column1.'_'.$join_alias1);
+                    } else {
+                        $result->leftjoin($join_table1.' as '.$join_alias1, $join_alias1.'.'.$joinTable1PK, '=', $join_alias.'.'.$join_column);
+                        $result->addselect($join_alias1.'.'.$join_column1.' as '.$join_column1.'_'.$join_alias1);
+                    }
                     $alias[] = $join_alias1;
                     $columns_table[$index]['type_data'] = CRUDBooster::getFieldType($join_table1, $join_column1);
                     $columns_table[$index]['field'] = $join_column1.'_'.$join_alias1;
@@ -357,8 +379,7 @@ class CBController extends Controller
                     $columns_table[$index]['field_raw'] = $join_column1;
                 }
             } else {
-
-                if(isset($field_array[1])) {                    
+				if(isset($field_array[1])) {                    
                     $result->addselect($table.'.'.$field.' as '.$table.'_'.$field);
                     $columns_table[$index]['type_data'] = CRUDBooster::getFieldType($table, $field);
                     $columns_table[$index]['field'] = $table.'_'.$field;
@@ -388,8 +409,12 @@ class CBController extends Controller
             });
         }
 
-        if (request('where')) {
-            foreach (request('where') as $k => $v) {
+        if (in_array('deleted_at', $table_columns)) {
+            $result->where($this->table.'.deleted_at', null);
+        }
+
+        if (Request::get('where')) {
+            foreach (Request::get('where') as $k => $v) {
                 $result->where($table.'.'.$k, $v);
             }
         }
@@ -455,9 +480,13 @@ class CBController extends Controller
                     }
                 }
 
-                if ($type == 'between') {
-                    if ($key && $value) {
-                        $result->whereBetween($key, $value);
+                if ('between' == $type) {
+                    if ($key && $value && '' != $value[0] && '' != $value[1]) {
+                        if(explode('.',$key)[1]==='id') {
+                            $result->whereBetween($key, $value);
+                        } else {
+                            $result->whereBetween(DB::raw('DATE('.$key.')'), $value);
+                        }
                     }
                 } else {
                     continue;
@@ -500,11 +529,14 @@ class CBController extends Controller
         }
 
         $data['columns'] = $columns_table;
+        $data['columns_export'] = $this->columns_export;
 
-        if ($this->index_return) {
-            return $data;
-        }
+        return $data;
+    }
 
+    public function getIndex()
+    {
+        $data = $this->fetchIndex();
         //LISTING INDEX HTML
         $addaction = $this->data['addaction'];
 
@@ -512,9 +544,10 @@ class CBController extends Controller
             foreach ($this->sub_module as $s) {
                 $table_parent = CRUDBooster::parseSqlTable($this->table)['table'];
                 $addaction[] = [
+                    'title' => $s['title'],
                     'label' => $s['label'],
                     'icon' => $s['button_icon'],
-                    'url' => CRUDBooster::adminPath($s['path']).'?return_url='.urlencode(Request::fullUrl()).'&parent_table='.$table_parent.'&parent_columns='.$s['parent_columns'].'&parent_columns_alias='.$s['parent_columns_alias'].'&parent_id=['.(! isset($s['custom_parent_id']) ? "id" : $s['custom_parent_id']).']&foreign_key='.$s['foreign_key'].'&label='.urlencode($s['label']),
+                    'url' => CRUDBooster::adminPath($s['path']).'?return_url='.urlencode(Request::fullUrl()).'&parent_table='.$table_parent.'&parent_columns='.$s['parent_columns'].'&parent_columns_alias='.$s['parent_columns_alias'].'&parent_id=['.(! isset($s['parent_key']) ? 'id' : $s['parent_key']).']&foreign_key='.$s['foreign_key'].'&label='.urlencode($s['label']).(isset($s['parent_key']) ? ('&parent_key='.$s['parent_key']) : ''), //faisal tambah param parent_key
                     'color' => $s['button_color'],
                     'showIf' => $s['showIf'],
                 ];
@@ -553,8 +586,13 @@ class CBController extends Controller
                     if ($value == '') {
                         $value = "<a  data-lightbox='roadtrip' rel='group_{{$table}}' title='$label: $title' href='".asset('vendor/crudbooster/avatar.jpg')."'><img width='40px' height='40px' src='".asset('vendor/crudbooster/avatar.jpg')."'/></a>";
                     } else {
-                        $pic = (strpos($value, 'http://') !== false) ? $value : asset($value);
-                        $value = "<a data-lightbox='roadtrip'  rel='group_{{$table}}' title='$label: $title' href='".$pic."'><img width='40px' height='40px' src='".$pic."'/></a>";
+                        $pic = (false !== strpos($value, 'http://')) ? $value : asset($value);
+                        $value = "<a data-lightbox='roadtrip'  rel='group_{{$table}}' title='{$label}: {$title}' href='".$pic."'><img width='40px' height='40px' src='".$pic."'/></a>";
+                    }
+                    if (! $col['image']) {
+                        $pattern = "/(?<=href=(\"|'))[^\"']+(?=(\"|'))/";
+                        $value = preg_replace($pattern, 'javascript:void(0)', $value);
+                        $value = str_replace('data-lightbox', 'data-disable', $value);
                     }
                 }
 
@@ -614,16 +652,16 @@ class CBController extends Controller
             endif;//button_table_action
 
             foreach ($html_content as $i => $v) {
-                $this->hook_row_index($i, $v);
+                $this->hook_row_index($i, $v, $row);
                 $html_content[$i] = $v;
             }
 
             $html_contents[] = $html_content;
         } //end foreach data[result]
-
         $html_contents = ['html' => $html_contents, 'data' => $data['result']];
 
         $data['html_contents'] = $html_contents;
+        $data['export_format'] = $this->export_format; //dvionst
 
         return view("crudbooster::default.index", $data);
     }
@@ -641,15 +679,30 @@ class CBController extends Controller
 
         $this->limit = Request::input('limit');
         $this->index_return = true;
+        $selected = '' == Request::input('selected_data') ? [] : explode(',', Request::input('selected_data'));
         $filetype = Request::input('fileformat');
         $filename = Request::input('filename');
         $papersize = Request::input('page_size');
         $paperorientation = Request::input('page_orientation');
-        $response = $this->getIndex();
+        $response = $this->fetchIndex(true, $selected); //dvionst
+
+        //dvionst
+        foreach ($response['result'] as $idx => &$row) {
+            foreach ($response['columns'] as $col) {
+                if (Request::get('columns')) {
+                    if (in_array($col['label'], Request::get('columns'))) {
+                        $this->hook_row_index_export($col['label'], $row->{$col['field']}, $row);
+                    }
+                }
+            }
+        }
 
         if (Request::input('default_paper_size')) {
             DB::table('cms_settings')->where('name', 'default_paper_size')->update(['content' => $papersize]);
         }
+
+        $response['export_font_family'] = $this->export_font_family;
+        $response['export_font_size'] = $this->export_font_size;
 
         switch ($filetype) {
             case "pdf":
@@ -661,11 +714,24 @@ class CBController extends Controller
                 return $pdf->stream($filename.'.pdf');
                 break;
             case 'xls':
-                return Excel::download(new DefaultExportXls($response),$filename.".xls");
+                return Excel::download(new Template1Export($response), $filename.'.xlsx');
+                // Excel::download($filename, function ($excel) use ($response) {
+                //     $excel->setTitle($filename)->setCreator("crudbooster.com")->setCompany(CRUDBooster::getSetting('appname'));
+                //     $excel->sheet($filename, function ($sheet) use ($response) {
+                //         $sheet->setOrientation($paperorientation);
+                //         $sheet->loadview('crudbooster::export', $response);
+                //     });
+                // })->export('xls');
                 break;
             case 'csv':
-
-                return Excel::download(new DefaultExportXls($response),$filename.".csv");
+                return Excel::download(new Template1Export($response), $filename.'.csv');
+                // Excel::download($filename, function ($excel) use ($response) {
+                //     $excel->setTitle($filename)->setCreator("crudbooster.com")->setCompany(CRUDBooster::getSetting('appname'));
+                //     $excel->sheet($filename, function ($sheet) use ($response) {
+                //         $sheet->setOrientation($paperorientation);
+                //         $sheet->loadview('crudbooster::export', $response);
+                //     });
+                // })->export('csv');
                 break;
         }
     }
@@ -1189,7 +1255,9 @@ class CBController extends Controller
 
                     if ($inputdata) {
                         foreach ($inputdata as $input_id) {
+                            $relationship_table_pk = CB::pk($row['relationship_table']);
                             DB::table($ro['relationship_table'])->insert([
+                                //                                 $relationship_table_pk => CRUDBooster::newId($ro['relationship_table']),
                                 $foreignKey => $id,
                                 $foreignKey2 => $input_id,
                             ]);
@@ -1198,7 +1266,7 @@ class CBController extends Controller
                 }
             }
 
-            if ($ro['type'] == 'child') {
+            if ('child' == $ro['type'] || 'child2' == $ro['type']) {
                 $name = str_slug($ro['label'], '');
                 $columns = $ro['columns'];
                 $getColName = request($name.'-'.$columns[0]['name']);
@@ -1210,9 +1278,10 @@ class CBController extends Controller
                     $column_data = [];
                     foreach ($columns as $col) {
                         $colname = $col['name'];
-                        $colvalue = request($name.'-'.$colname)[$i];
-                        if(isset($colvalue) === TRUE) {
-                            $column_data[$colname] = $colvalue;
+                        if ('money' == $col['type']) {
+                            $column_data[$colname] = str_replace($this->thousands_sep, '', Request::get($name.'-'.$colname)[$i]);
+                        } else {
+                            $column_data[$colname] = Request::get($name.'-'.$colname)[$i];
                         }
                     }
                     if(isset($column_data) === TRUE) {
@@ -1266,7 +1335,10 @@ class CBController extends Controller
         $command = 'edit';
         Session::put('current_row_id', $id);
 
-        return view('crudbooster::default.form', compact('id', 'row', 'page_menu', 'page_title', 'command'));
+        $this->hook_before_get($row);
+        $pk = $this->primary_key; //dvionst
+
+        return view('crudbooster::default.form', compact('id', 'row', 'page_menu', 'page_title', 'command', 'pk'));
     }
 
     public function postEditSave($id)
@@ -1346,7 +1418,7 @@ class CBController extends Controller
                 }
             }
 
-            if ($ro['type'] == 'child') {
+            if ('child' == $ro['type'] || 'child2' == $ro['type']) {
                 $name = str_slug($ro['label'], '');
                 $columns = $ro['columns'];
                 $getColName = request($name.'-'.$columns[0]['name']);
@@ -1363,9 +1435,10 @@ class CBController extends Controller
                     $column_data = [];
                     foreach ($columns as $col) {
                         $colname = $col['name'];
-                        $colvalue = request($name.'-'.$colname)[$i];
-                        if(isset($colvalue) === TRUE) {
-                            $column_data[$colname] = $colvalue;
+                        if ('money' == $col['type']) {
+                            $column_data[$colname] = str_replace($this->thousands_sep, '', Request::get($name.'-'.$colname)[$i]);
+                        } else {
+                            $column_data[$colname] = Request::get($name.'-'.$colname)[$i];
                         }
                     }
                     if(isset($column_data) === TRUE){
@@ -1461,7 +1534,7 @@ class CBController extends Controller
     {
         $this->cbLoader();
         $data['page_menu'] = Route::getCurrentRoute()->getActionName();
-        $data['page_title'] = 'Import Data';
+        $data['page_title'] = 'Import Data '.$module->name;
 
         if (request('file') && ! request('import')) {
             $file = base64_decode(request('file'));
@@ -1761,7 +1834,15 @@ class CBController extends Controller
     {
     }
 
-    public function hook_row_index($index, &$value)
+    public function hook_row_index($index, &$value, $row)
+    {
+    }
+
+    public function hook_row_index_export($name, &$value, $row)
+    {
+    }
+
+    public function hook_before_get(&$model)
     {
     }
 
@@ -1787,5 +1868,16 @@ class CBController extends Controller
 
     public function hook_after_delete($id)
     {
+    }
+
+    private function checkHideForm()
+    {
+        if ($this->hide_form && count($this->hide_form)) {
+            foreach ($this->form as $i => $f) {
+                if (in_array($f['name'], $this->hide_form)) {
+                    unset($this->form[$i]);
+                }
+            }
+        }
     }
 }

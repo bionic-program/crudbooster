@@ -251,6 +251,7 @@ return [
     'privileges_module_list_read' => 'Read',
     'privileges_module_list_update' => 'Update',
     'privileges_module_list_delete' => 'Delete',
+    'privileges_module_list_status' => 'Status',
 
     //datamodal
     'datamodal_select' => 'Select',

@@ -1,5 +1,16 @@
-@if($form['datatable'])
+<?php
+    if (@$form['php_code_before']) {
+        eval($form['php_code_before']);
+    }
 
+    $preeval = $form['datatable_where'];
+    eval("\$preeval = \"$preeval\";");
+    $form['datatable_where'] = $preeval;
+
+?>
+
+@if($form['datatable'])
+    
     @if($form['relationship_table'])
         @push('bottom')
             <script type="text/javascript">
@@ -12,6 +23,7 @@
         @if($form['datatable_ajax'] == true)
 
             <?php
+
             $datatable = @$form['datatable'];
             $where = @$form['datatable_where'];
             $format = @$form['datatable_format'];
@@ -117,14 +129,14 @@
 
 @endif
 
-<div class='form-group {{$header_group_class}} {{ ($errors->first($name))?"has-error":"" }}' id='form-group-{{$name}}' style="{{@$form['style']}}">
-    <label class='control-label col-sm-2'>{{$form['label']}}
+<div class='form-group {{$header_group_class}} {{ ($errors->first($name))?"has-error":"" }} {{$col_group_width?:"col-sm-12"}}' id='form-group-{{$name}}' style="{{@$form['style']}}">
+    <label class="control-label {{$col_label_width?:'col-sm-2'}}" style="{{@$form['label_style']}}">{{$form['label']}}
         @if($required)
             <span class='text-danger' title='{!! cbLang('this_field_is_required') !!}'>*</span>
         @endif
     </label>
 
-    <div class="{{$col_width?:'col-sm-10'}}">
+    <div class="no-padding {{$col_width?:'col-sm-10'}}" style="{{@$form['control_style']}}">
         <select style='width:100%' class='form-control' id="{{$name}}"
                 {{$required}} {{$readonly}} {!!$placeholder!!} {{$disabled}} name="{{$name}}{{($form['relationship_table'])?'[]':''}}" {{ ($form['relationship_table'])?'multiple="multiple"':'' }} >
             @if($form['dataenum'])
@@ -153,18 +165,35 @@
             @if($form['datatable'])
                 @if($form['relationship_table'])
                     <?php
-                    $select_table = explode(',', $form['datatable'])[0];
-                    $select_title = explode(',', $form['datatable'])[1];
+                    $exploded = explode(',', $form['datatable']);
+                    $select_table = $exploded[0];
+                    $select_title = trim(str_replace("|", ",", $exploded[1]));
                     $select_where = $form['datatable_where'];
                     $pk = CRUDBooster::findPrimaryKey($select_table);
 
-                    $result = DB::table($select_table)->select($pk, $select_title);
+                    if(count($exploded) > 2){
+                        $pk = $exploded[2];
+                    }
+
+                    $result = DB::table($select_table)->select(\DB::raw($pk.",".$select_title));
                     if ($select_where) {
                         $result->whereraw($select_where);
                     }
-                    $result = $result->orderby($select_title, 'asc')->get();
 
-                    if($form['datatable_orig'] != ''){
+                    if (strpos($select_title, ' as ') !== false) {
+                        $as = explode(" as ", $select_title);
+                        $orderCol = $as[0];
+                        $label = $as[1];
+                    }else{
+                        $orderCol = $select_title;
+                        $label = $select_title;
+                    }
+
+                    
+                    $result = $result->orderbyRaw($orderCol.' asc')->get();
+
+					
+					if($form['datatable_orig'] != ''){
                         $params = explode("|", $form['datatable_orig']);
                         if(!isset($params[2])) $params[2] = "id";
                         $value = DB::table($params[0])->where($params[2], $id)->first()->{$params[1]};
@@ -175,10 +204,10 @@
                         $value = DB::table($form['relationship_table'])->where($foreignKey, $id);
                         $value = $value->pluck($foreignKey2)->toArray();
                     }
-                    
+
                     foreach ($result as $r) {
-                        $option_label = $r->{$select_title};
-                        $option_value = $r->id;
+                        $option_label = $r->{$label};
+                        $option_value = $r->{$pk};
                         $selected = (is_array($value) && in_array($r->$pk, $value)) ? "selected" : "";
                         echo "<option $selected value='$option_value'>$option_label</option>";
                     }
@@ -187,12 +216,17 @@
                     @if($form['datatable_ajax'] == false)
                         <option value=''>{{cbLang('text_prefix_option')}} {{$form['label']}}</option>
                         <?php
-                        $select_table = explode(',', $form['datatable'])[0];
-                        $select_title = explode(',', $form['datatable'])[1];
+                        $exploded = explode(',', $form['datatable']);
+                        $select_table = $exploded[0];
+                        $select_title = str_replace("|", ",", $exploded[1]);
                         $select_where = $form['datatable_where'];
                         $datatable_format = $form['datatable_format'];
-                        $select_table_pk = CRUDBooster::findPrimaryKey($select_table);
-                        $result = DB::table($select_table)->select($select_table_pk, $select_title);
+                        if(count($exploded) > 2){
+                            $select_table_pk = $exploded[2];
+                        }else{
+                            $select_table_pk = CRUDBooster::findPrimaryKey($select_table);
+                        }
+                        $result = DB::table($select_table)->select($select_table_pk, \DB::raw($select_title));
                         if ($datatable_format) {
                             $result->addSelect(DB::raw("CONCAT(".$datatable_format.") as $select_title"));
                         }
@@ -202,7 +236,14 @@
                         if (CRUDBooster::isColumnExists($select_table, 'deleted_at')) {
                             $result->whereNull('deleted_at');
                         }
-                        $result = $result->orderby($select_title, 'asc')->get();
+
+                        if (strpos($select_title, ' as ') !== false) {
+                            $orderCol = explode(" as ", $select_title)[0];
+                        }else{
+                            $orderCol = $select_title;
+                        }
+                        
+                        $result = $result->orderbyRaw($orderCol.' asc')->get();
 
                         foreach ($result as $r) {
                             $option_label = $r->{$select_title};
@@ -227,3 +268,18 @@
 
     </div>
 </div>
+
+@if(isset($form['value']))
+    <?php 
+        $valuejoined = is_array($form['value']) ? implode(",", $form['value']) : $form['value'];
+    ?>
+    @push('bottom')
+        <script type="text/javascript">
+            document.addEventListener("DOMContentLoaded",function(){
+                var value = ('{{$valuejoined}}').split(',');
+                $('#{{$name}}').val(value).trigger('change');
+            });
+        </script>
+    @endpush
+@endif
+

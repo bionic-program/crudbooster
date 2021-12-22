@@ -37,7 +37,7 @@
                 $(".header-title").each(function () {
                     var data_collapsed = $(this).attr('data-collapsed');
                     console.log("header title " + data_collapsed);
-                    if (data_collapsed == 'false') {
+                    if (data_collapsed == 'true') {
                         console.log("collapsed false");
                         $(this).click();
                     }

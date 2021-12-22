@@ -9,6 +9,7 @@
     "optional": {
       "style": "string inline stylesheet",
       "help": "string help-block",
+      "php_code_before": "custom PHP code to execute before",
       "relationship_table": "table relation for many to many. datatable attr is required",
       "datatable_where": "string where condition",
       "datatable_format": "sql concat alike. e.g : id,' - ',title",

@@ -98,10 +98,10 @@ $name = str_slug($form['label'], '');
                                                                 $.each(select_to_json, function (key, val) {
                                                                     console.log('#' + key + ' = ' + val);
                                                                     if (key == 'datamodal_id') {
-                                                                        $('#{{$name_column}} .input-id').val(val);
+                                                                        $('#{{$name_column}} .input-id').val(val).change();
                                                                     }
                                                                     if (key == 'datamodal_label') {
-                                                                        $('#{{$name_column}} .input-label').val(val);
+                                                                        $('#{{$name_column}} .input-label').val(val).change();
                                                                     }
                                                                     $('#{{$name}}' + key).val(val).trigger('change');
                                                                 })
@@ -312,12 +312,12 @@ $name = str_slug($form['label'], '');
                                                             $tableJoin = explode(',', $col['datatable'])[0];
                                                             $titleField = explode(',', $col['datatable'])[1];
                                                             if (! $col['datatable_where']) {
-                                                                $data = CRUDBooster::get($tableJoin, NULL, "$titleField ASC");
+                                                                $data = CRUDBooster::get($tableJoin, null, "$titleField ASC");
                                                             } else {
                                                                 $data = CRUDBooster::get($tableJoin, $col['datatable_where'], "$titleField ASC");
                                                             }
                                                             foreach ($data as $d) {
-                                                                echo "<option value='$d->id'>".$d->$titleField."</option>";
+                                                                echo "<option value='$d->id'>".$d->$titleField.'</option>';
                                                             }
                                                         } else {
                                                             $data = $col['dataenum'];
@@ -351,16 +351,16 @@ $name = str_slug($form['label'], '');
                                             <?php
                                             $formula = $col['formula'];
                                             $formula_function_name = 'formula'.str_slug($name.$col['name'], '');
-                                            $script_onchange = "";
+                                            $script_onchange = '';
                                             foreach ($form['columns'] as $c) {
-                                                if (strpos($formula, "[".$c['name']."]") !== false) {
+                                                if (strpos($formula, '['.$c['name'].']') !== false) {
                                                     $script_onchange .= "
 											$('#$name$c[name]').change(function() {
 												$formula_function_name();
 											});
 											";
                                                 }
-                                                $formula = str_replace("[".$c['name']."]", "\$('#".$name.$c['name']."').val()", $formula);
+                                                $formula = str_replace('['.$c['name'].']', "\$('#".$name.$c['name']."').val()", $formula);
                                             }
                                             ?>
                                             @push('bottom')

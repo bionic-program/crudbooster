@@ -14,6 +14,7 @@
       }
     },
     "optional": {
+      "php_code_before": "custom PHP code to execute before",
       "datamodal_where": "string where condition",
       "datamodal_module_path": "Module name",
       "datamodal_columns_alias_name": "Column name Alias , sparate with comma ex: 'Name Surname','Age' ",

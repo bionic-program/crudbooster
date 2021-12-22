@@ -1,1 +1,1 @@
-<input type='hidden' name="{{$name}}" value='{{$value}}'/>
+<input type='hidden' id="{{$form['id']}}" name="{{$name}}" value='{{$value}}'/>

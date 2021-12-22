@@ -119,6 +119,10 @@
                                         var is_ch = $(this).is(':checked');
                                         $(".is_delete").prop("checked", is_ch);
                                     })
+                                    $("#is_status").click(function () {
+                                        var is_ch = $(this).is(':checked');
+                                        $(".is_status").prop("checked", is_ch);
+                                    })
                                     $(".select_horizontal").click(function () {
                                         var p = $(this).parents('tr');
                                         var is_ch = $(this).is(':checked');
@@ -138,6 +142,7 @@
                                 <th>{{cbLang('privileges_module_list_read')}}</th>
                                 <th>{{cbLang('privileges_module_list_update')}}</th>
                                 <th>{{cbLang('privileges_module_list_delete')}}</th>
+	                            <th>{{cbLang('privileges_module_list_status')}}</th>
                             </tr>
                             <tr class='info'>
                                 <th>&nbsp;</th>
@@ -148,6 +153,7 @@
                                 <td align="center"><input title='Check all vertical' type='checkbox' id='is_read'/></td>
                                 <td align="center"><input title='Check all vertical' type='checkbox' id='is_edit'/></td>
                                 <td align="center"><input title='Check all vertical' type='checkbox' id='is_delete'/></td>
+                                <td align="center"><input title='Check all vertical' type='checkbox' id='is_status'/></td>
                             </tr>
                             </thead>
                             <tbody>
@@ -160,7 +166,7 @@
                                     <td><?php echo $no++;?></td>
                                     <td>{{$modul->name}}</td>
                                     <td class='info' align="center"><input type='checkbox' title='Check All Horizontal'
-                                                                           <?=($roles->is_create && $roles->is_read && $roles->is_edit && $roles->is_delete) ? "checked" : ""?> class='select_horizontal'/>
+                                                                           <?=($roles->is_create && $roles->is_read && $roles->is_edit && $roles->is_delete && $roles->is_status) ? "checked" : ""?> class='select_horizontal'/>
                                     </td>
                                     <td class='active' align="center"><input type='checkbox' class='is_visible' name='privileges[<?=$modul->id?>][is_visible]'
                                                                              <?=@$roles->is_visible ? "checked" : ""?> value='1'/></td>
@@ -172,6 +178,8 @@
                                                                               <?=@$roles->is_edit ? "checked" : ""?> value='1'/></td>
                                     <td class='danger' align="center"><input type='checkbox' class='is_delete' name='privileges[<?=$modul->id?>][is_delete]'
                                                                              <?=@$roles->is_delete ? "checked" : ""?> value='1'/></td>
+                                    <td class='default' align="center"><input type='checkbox' class='is_status' name='privileges[<?=$modul->id?>][is_status]'
+                                                                             <?=@$roles->is_status ? "checked" : ""?> value='1'/></td>
                                 </tr>
                             @endforeach
                             </tbody>

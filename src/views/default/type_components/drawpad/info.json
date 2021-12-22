@@ -1,0 +1,17 @@
+{
+  "title": "Drawing Pad",
+  "type": "drawpad",
+  "attribute": {
+    "requiredOne": {
+      "width": "Width of canvas",
+      "height": "height of canvas",
+    },
+    "optional": {
+      "style": "string inline stylesheet",
+      "control_style": "string inline stylesheet",
+      "help": "string help-block",
+      "readonly": "boolean",
+      "disabled": "boolean"
+    }
+  }
+}

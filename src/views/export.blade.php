@@ -1,6 +1,12 @@
 @if(Request::input('fileformat') == 'pdf')
     <h3>{{Request::input('filename')}}</h3>
 @endif
+<style type="text/css">
+    body{
+        font-family: "{{$export_font_family}}" !important;
+        font-size: {{$export_font_size}} !important;
+    }
+</style>
 <table border='1' width='100%' cellpadding='3' cellspacing="0" style='border-collapse: collapse;font-size:12px'>
     <thead>
     <tr>
@@ -8,12 +14,12 @@
         foreach ($columns as $col) {
 
             if (Request::get('columns')) {
-                if (! in_array($col['name'], Request::get('columns'))) {
+                if (! in_array($col['label'], Request::get('columns'))) {
                     continue;
                 }
             }
             $colname = $col['label'];
-            echo "<th style='background:#eeeeee'>$colname</th>";
+            echo "<th style='background:#eeeeee;text-align:center'>$colname</th>";
         }
         ?>
     </tr>
@@ -24,13 +30,16 @@
             <td colspan='{{count($columns)+1}}' align="center">No Data Avaliable</td>
         </tr>
     @else
+        <?php
+            $totals = [];
+        ?>
         @foreach($result as $row)
             <tr>
                 <?php
                 foreach ($columns as $col) {
 
                     if (Request::get('columns')) {
-                        if (! in_array($col['name'], Request::get('columns'))) {
+                        if (! in_array($col['label'], Request::get('columns'))) {
                             continue;
                         }
                     }
@@ -80,6 +89,21 @@
                         }
 
                         echo "<td>".$value."</td>";
+
+                        //kalkulasi total
+                        if(isset($col['formula'])){
+                            if($col['formula'] == "sum"){
+                                if(!isset($totals[$col['name']])){
+                                    $totals[$col['name']] = 0;
+                                }
+                                $totals[$col['name']] += (int)str_replace(",", "", $value);
+                            }else if($col['formula'] == "count"){
+                                if(!isset($totals[$col['name']])){
+                                    $totals[$col['name']] = 0;
+                                }
+                                $totals[$col['name']] += 1;
+                            }
+                        }
                     }
                 }
                 ?>
@@ -87,6 +111,27 @@
         @endforeach
     @endif
     </tbody>
+    <tfoot>
+        <tr>
+        <?php
+        foreach ($columns as $col) {
+            if(isset($col['formula'])){
+                if($col['formula'] == "sum"){
+                    $fcaption = $col['footer'] ?: "{".$col['formula']."}";
+                    echo "<td>".str_replace("{".$col['formula']."}",number_format($totals[$col['name']],0), $fcaption)."</td>";
+                }else if($col['formula'] == "count"){
+                    $fcaption = $col['footer'] ?: "{".$col['formula']."}";
+                    echo "<td>".str_replace("{".$col['formula']."}",number_format($totals[$col['name']],0), $fcaption)."</td>";
+                }
+            }else if(isset($col['footer']) && $col['footer'] != ""){
+                echo "<td>".$col['footer']."</td>";                  
+            }else{
+                echo "<td></td>";
+            }
+        }
+        ?>
+        </tr>
+    </tfoot>
 </table>
 <script type="text/php">
     if ( isset($pdf) ) {
