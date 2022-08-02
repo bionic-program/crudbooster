@@ -594,7 +594,7 @@ class CRUDBooster
 
     public static function adminPath($path = null)
     {
-        return url(config('crudbooster.ADMIN_PATH').'/'.$path);
+        return url(config('crudbooster.ADMIN_PATH').$path);
     }
 
     public static function getCurrentId()

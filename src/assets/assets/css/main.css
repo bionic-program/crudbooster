@@ -46,6 +46,10 @@
 		font-size: 12px;
 	}
 
+	#table_dashboard .button_action > a{
+		margin-bottom: 5px;
+	}
+
 	
 
 	.login-box-body {

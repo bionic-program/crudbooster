@@ -24,8 +24,7 @@
 
                 swal({
                         title: "{{cbLang("confirmation_title")}}",
-                        text: "{{cbLang("alert_bulk_action_button")}} " + title + " 
-			",
+                        text: "{{cbLang("alert_bulk_action_button")}} " + title + " ?",
                         type: "warning",
                         showCancelButton: true,
                         confirmButtonColor: "#008D4C",
@@ -244,7 +243,7 @@ $total = $result->total();
                     $('#advanced_filter_modal').modal('show');
                 })
 
-                $(".filter-combo").change(function () {
+                $(".filter-combo").change(function (e) {
                     var n = $(this).val();
                     var p = $(this).parents('.row-filter-combo');
                     var type_data = $(this).attr('data-type');
@@ -252,7 +251,11 @@ $total = $result->total();
 
                     p.find('.between-group').hide();
                     p.find('.between-group').find('input').prop('disabled', true);
-                    filter_value.val('').show().focus();
+                    if (e.originalEvent) { //dvionst only clear when triggered by user input
+                      filter_value.val('').show().focus();
+                    }else{
+                      filter_value.show().focus();     
+                    }
                     switch (n) {
                         default:
                             filter_value.removeAttr('placeholder').val('').prop('disabled', true);

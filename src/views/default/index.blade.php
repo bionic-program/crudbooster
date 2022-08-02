@@ -10,14 +10,15 @@
                         <a href="{{ $stat['url']?:'#' }}">
                         <div class="small-box bg-{{ $stat['color']?:'red' }}">
                             <div class="inner inner-box">
-                                <h3>{{ $stat['count'] }}</h3>
-                                <p>{{ $stat['label'] }}</p>
+                                <h3>{!! $stat['count'] !!}</h3>
+                                <p>{!! $stat['label'] !!}</p>
                             </div>
                             <div class="icon">
                                 <i class="{{ $stat['icon'] }}"></i>
                             </div>
                             <div class="small-box-footer"></div>
                         </div>
+                        </a>
                     </div>
                 </div>
             @endforeach
@@ -67,7 +68,7 @@
                     <div class="selected-action" style="display:inline-block;position:relative;">
                         <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i
                                     class='fa fa-check-square-o'></i> {{cbLang("button_selected_action")}}
-                            <span class="fa fa-caret-down"></span></button>
+                        <span class="fa fa-caret-down"></span></button>
                         <ul class="dropdown-menu">
                             @if($button_delete && CRUDBooster::isDelete())
                                 <li><a href="javascript:void(0)" data-name='delete' title='{{cbLang('action_delete_selected')}}'><i
@@ -139,6 +140,31 @@
         </div>
         <div class="box-body table-responsive no-padding">
             @include("crudbooster::default.table")
+        </div>
+        <div class="box-footer">
+            @if($button_bulk_action && ( ($button_delete && CRUDBooster::isDelete()) || $button_selected) )
+                <div class="pull-{{ cbLang('left') }}">
+                    <div class="selected-action" style="display:inline-block;position:relative;">
+                        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i
+                                    class='fa fa-check-square-o'></i> {{cbLang("button_selected_action")}}
+                        <span class="fa fa-caret-down"></span></button>
+                        <ul class="dropdown-menu">
+                            @if($button_delete && CRUDBooster::isDelete())
+                                <li><a href="javascript:void(0)" data-name='delete' title='{{cbLang('action_delete_selected')}}'><i
+                                                class="fa fa-trash"></i> {{cbLang('action_delete_selected')}}</a></li>
+                            @endif
+
+                            @if($button_selected)
+                                @foreach($button_selected as $button)
+                                    <li><a href="javascript:void(0)" data-name='{{$button["name"]}}' title='{{$button["label"]}}'><i
+                                                    class="fa fa-{{$button['icon']}}"></i> {{$button['label']}}</a></li>
+                                @endforeach
+                            @endif
+
+                        </ul><!--end-dropdown-menu-->
+                    </div><!--end-selected-action-->
+                </div><!--end-pull-left-->
+            @endif
         </div>
     </div>
 

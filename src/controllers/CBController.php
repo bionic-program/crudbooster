@@ -25,6 +25,8 @@ class CBController extends Controller
 
     public $columns_table;
 
+    public $columns_export;
+
     public $module_name;
 
     public $table;
@@ -224,7 +226,8 @@ class CBController extends Controller
     }
 
     public function fetchIndex($is_export = false, $specific_keys = [])
-    {
+    {   
+        //DB::enableQueryLog();
         $this->cbLoader();
 
         $module = CRUDBooster::getCurrentModule();
@@ -444,7 +447,8 @@ class CBController extends Controller
 
                     switch ($type) {
                         default:
-                            if ($key && $type && $value) {
+                            //dvionst 2022-05-04 tambah if not ""
+                            if ($key != "" && $type != "" && $value != "") {
                                 $w->where($key, $type, $value);
                             }
                             break;
@@ -454,6 +458,7 @@ class CBController extends Controller
                             if ($key && $type && $value) {
                                 $w->where($key, $type, $value);
                             }
+                            
                             break;
                         case 'in':
                         case 'not in':
@@ -482,6 +487,12 @@ class CBController extends Controller
 
                 if ('between' == $type) {
                     if ($key && $value && '' != $value[0] && '' != $value[1]) {
+
+                        //dvionst 2022-05-01
+                        $value[0] = date("Y-m-d", strtotime($value[0]));
+                        $value[1] = date("Y-m-d", strtotime($value[1]));
+
+
                         if(explode('.',$key)[1]==='id') {
                             $result->whereBetween($key, $value);
                         } else {
@@ -530,7 +541,7 @@ class CBController extends Controller
 
         $data['columns'] = $columns_table;
         $data['columns_export'] = $this->columns_export;
-
+        //dd(DB::getQueryLog());
         return $data;
     }
 
@@ -560,12 +571,11 @@ class CBController extends Controller
         $html_contents = [];
         $page = (request('page')) ? request('page') : 1;
         $number = ($page - 1) * $limit + 1;
-        foreach ($data['result'] as $row) {
+        foreach ($data['result'] as $iKe => $row) {
             $html_content = [];
 
             if ($this->button_bulk_action) {
-
-                $html_content[] = "<input type='checkbox' class='checkbox' name='checkbox[]' value='".$row->{$tablePK}."'/>";
+                $html_content[] = "<input type='checkbox' class='checkbox' name='checkbox[]' value='".$row->{$data['table_pk']}."'/>";
             }
 
             if ($this->show_numbering) {
@@ -573,7 +583,7 @@ class CBController extends Controller
                 $number++;
             }
 
-            foreach ($columns_table as $col) {
+            foreach ($data['columns'] as $keye => $col) {
                 if ($col['visible'] === false) {
                     continue;
                 }
@@ -1870,14 +1880,5 @@ class CBController extends Controller
     {
     }
 
-    private function checkHideForm()
-    {
-        if ($this->hide_form && count($this->hide_form)) {
-            foreach ($this->form as $i => $f) {
-                if (in_array($f['name'], $this->hide_form)) {
-                    unset($this->form[$i]);
-                }
-            }
-        }
-    }
+    
 }
